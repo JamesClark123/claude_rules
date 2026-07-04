@@ -98,6 +98,23 @@ command.
 job runs against `docker compose up`-equivalent infrastructure; a
 developer running E2E locally uses the same stack.
 
+**Terraform-based deployment** (optional per package):
+
+- Apps and services MAY manage their cloud infrastructure via a Terraform
+  configuration. When present, the Terraform root module MUST live in an
+  `infra/` subdirectory at the package root (e.g.,
+  `src/apps/<app>/infra/`, `src/services/<svc>/infra/`).
+- Reusable Terraform modules shared across multiple apps or services MUST
+  live in the `src/infra/` category (see Repository Structure rule) rather
+  than being duplicated inside individual packages.
+- When a package provides a `deploy` script (see Development Workflow rule),
+  it MUST delegate to that package's `infra/` Terraform root — not to a
+  shared or external module directly.
+- State backend configuration, provider versions, and variable definitions
+  MUST be committed; secret variable values MUST NOT be committed and MUST
+  follow the `.env` discipline from Rule VIII (or an equivalent secrets
+  management approach documented in the package README).
+
 **Rationale**: Constraining all deployable units to one container
 runtime and one merged compose stack makes "boot the whole system"
 a single command for every contributor — no per-app scripts, no

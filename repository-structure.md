@@ -1,8 +1,8 @@
 # Repository Structure
 
 All source code in this monorepo lives under `src/`. The first level
-under `src/` is restricted to the following six canonical directories.
-Adding a seventh top-level category requires a constitution amendment.
+under `src/` is restricted to the following seven canonical directories.
+Adding an eighth top-level category requires a constitution amendment.
 
 | Category        | Path              | Contains                                                    |
 |-----------------|-------------------|-------------------------------------------------------------|
@@ -12,6 +12,7 @@ Adding a seventh top-level category requires a constitution amendment.
 | Repositories    | `src/repositories/` | All database-touching code: schemas, migrations, query layers, ORMs. |
 | Components      | `src/components/` | Reusable UI components (presentational building blocks).    |
 | Features        | `src/features/`   | Pre-built, reusable end-to-end feature slices that an app can drop in to gain a complete capability (composing components, repositories, and services). |
+| Infra           | `src/infra/`      | Reusable infrastructure code (Terraform modules, CDK constructs, shared cloud configuration) consumed by apps and services. No application logic. |
 
 **Package location rule**: Every workspace package MUST live exactly one
 level deep inside one of the six categories — `src/<category>/<name>/`.
@@ -44,3 +45,7 @@ warrant their own top-level category.
   "user onboarding flow", "billing portal")? → `features/`.
 - An HTTP/RPC server or worker that gets deployed? → `services/`.
 - A user-facing app shell that gets deployed? → `apps/`.
+- A reusable Terraform module, CDK construct, or shared cloud configuration
+  consumed by multiple apps or services? → `infra/`. Package-specific
+  Terraform roots (used by exactly one app or service) belong in that
+  package's own `infra/` subdirectory, NOT here.

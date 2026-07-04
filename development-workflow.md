@@ -22,10 +22,29 @@
 - E2E packages MUST be a sibling workspace package named `<app>-e2e`
   inside the same category as the target (e.g.,
   `src/apps/web-e2e/` for `src/apps/web/`,
-  `src/services/demo-service-e2e/` for `src/services/demo-service/`).
+  `src/services/my-svc-e2e/` for `src/services/my-svc/`).
   They MUST read `E2E_TARGET` (or a documented project-specific
   equivalent) to switch between local-Docker and remote-deployment
   targets without code changes.
+- Packages under `src/apps/` and `src/services/` MAY expose an optional
+  `deploy` script in their `package.json`. When present, this script MUST
+  invoke the package's Terraform deployment (e.g., `terraform -chdir=infra
+  apply`). Packages that do not yet have a deployment strategy (e.g.,
+  those still under active development) MAY omit this script entirely;
+  omission does not require documentation. Once a `deploy` script is added,
+  it becomes the canonical, scripted entry point for that package's
+  production deployment — ad-hoc `terraform apply` invocations from outside
+  the package script MUST NOT be the standard workflow.
+- Only packages under `src/apps/` and `src/services/` MUST expose a `dev`
+  script in their `package.json`. All other package categories (`libs`,
+  `components`, `repositories`, `features`, `infra`) MUST NOT expose a `dev`
+  script; this keeps `pnpm -r run dev` scoped exclusively to the runnable
+  units so the entire local stack can be started with a single command. The
+  `dev` script MUST start the package via its per-package `docker-compose.yml`
+  (e.g., `docker compose up`) rather than invoking a dev server or process
+  manager directly. The compose file is the authoritative entry point for
+  local development; bypassing it (e.g., running `node server.js` or `vite`
+  directly) is NOT permitted as the primary dev workflow.
 - Generated, vendored, or third-party files (e.g., `dist/`, build outputs,
   `node_modules/`) MUST be excluded from formatting and linting via
   Biome's `files.includes` / `files.experimentalScannerIgnores` (or the
