@@ -10,8 +10,12 @@
     interaction tests; runs with `@vitest/coverage-v8` and the 90%
     thresholds from Rule VI). Packages with no integration scope
     MAY expose a no-op script.
-  - `test:e2e` (Playwright). Only the `<app>-e2e` packages need to
-    implement this; other packages MAY omit it.
+  - `test:e2e` (Playwright for `<app>-e2e` packages; supertest for
+    `<svc>-e2e` packages). Only `*-e2e` sibling packages implement this;
+    all other packages MAY omit it.
+  - `test:stress` (artillery). Only `<svc>-e2e` packages implement this;
+    all other packages MAY omit it. MUST NOT run in the pre-commit hook or
+    as a required CI gate on every PR.
   - `test` SHOULD be defined as an alias running `test:unit` (the fast
     layer used by the Husky hook).
   - `env:check` (per-package environment-variable schema/example

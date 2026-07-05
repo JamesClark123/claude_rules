@@ -34,28 +34,62 @@ between application code and its dependencies.
   guarantees a single source of truth for request/response fixtures.
 
 **3. End-to-end (E2E) tests** — drive a deployed application as a user
-would.
+would. The tool differs by package category:
 
-- Tool: Playwright. A different framework MAY be used only when Playwright
-  cannot reasonably target the platform (e.g., a native runtime it does
-  not support); deviations MUST be justified in the package's README and
-  in the PR introducing them.
-- E2E tests live in a dedicated workspace package per app, named
-  `<app>-e2e` and located as a sibling of the target inside the same
+- **Apps** (`src/apps/`): Tool is **Playwright**. A different framework MAY
+  be used only when Playwright cannot reasonably target the platform (e.g.,
+  a native runtime it does not support); deviations MUST be justified in the
+  package's README and in the PR introducing them.
+- **Services** (`src/services/`): Tool is **supertest**. Because services
+  expose HTTP/RPC APIs rather than a user-facing UI, supertest drives the
+  deployed service's HTTP surface directly. Playwright MUST NOT be
+  introduced for service E2E tests. E2E testing is only required for
+  services that expose an HTTP/RPC API surface — services whose sole
+  external interface is a non-HTTP protocol (e.g., a raw PostgreSQL
+  database, a message broker) are exempt and MUST NOT be given a
+  `<svc>-e2e` package. The exemption MUST be documented in the service's
+  README.
+
+- E2E tests live in a dedicated workspace package per target, named
+  `<target>-e2e` and located as a sibling of the target inside the same
   category directory (see Repository Structure rule). For a frontend app at
   `src/apps/<app>/`, the E2E package is `src/apps/<app>-e2e/`. For a
-  backend at `src/services/<svc>/`, the E2E package is
+  service at `src/services/<svc>/`, the E2E package is
   `src/services/<svc>-e2e/`. E2E tests MUST NOT be colocated inside the
   application package and MUST NOT live outside their target's category.
-- The Playwright configuration MUST accept a runtime target via the
-  `E2E_TARGET` environment variable (or a documented equivalent),
-  selecting between (a) a locally-built Docker image of the app and (b) a
-  remote deployment URL. The same test suite MUST run unchanged against
-  both targets.
+- Both Playwright configs (apps) and supertest suites (services) MUST
+  accept a runtime target via the `E2E_TARGET` environment variable (or a
+  documented equivalent), selecting between (a) a locally-built Docker image
+  of the target and (b) a remote deployment URL. The same test suite MUST
+  run unchanged against both targets.
 - CI MUST run the E2E suite against the local Docker build on every PR.
   Running against remote (staging / production) targets is permitted on
   demand and via scheduled jobs but MUST NOT replace the local-Docker
   PR run.
+
+**4. Stress tests** — validate that a service sustains expected throughput
+and latency under load.
+
+- Tool: **artillery** (`artillery` npm package). Alternative load-testing
+  tools MUST NOT be introduced without a constitution amendment.
+- Stress tests apply only to services that expose an HTTP/RPC API (the
+  same set that requires E2E testing). App packages (`src/apps/`) and all
+  other categories are exempt, as are services whose sole external interface
+  is a non-HTTP protocol.
+- Stress test scenarios (artillery YAML config files) MUST live inside the
+  service's `<svc>-e2e` package alongside the supertest E2E suite — NOT
+  inside the service package itself.
+- The artillery config MUST read `E2E_TARGET` (or the same documented
+  equivalent used by the supertest suite) to point at the correct base URL,
+  so scenarios run unchanged against both the local Docker build and remote
+  deployments.
+- Stress tests are exposed via a `test:stress` script in the `<svc>-e2e`
+  package. They MUST NOT be run on every PR (execution time and infra cost
+  make them unsuitable as a commit gate); instead they MUST be runnable on
+  demand and MAY be scheduled (e.g., nightly against staging).
+- Stress tests are intentionally OUT of scope for the 90% coverage
+  threshold. They are evaluated by latency percentiles and error-rate
+  targets documented in the artillery config, not by code coverage.
 
 **Visual-testing layer matrix** (Storybook):
 
