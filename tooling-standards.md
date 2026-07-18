@@ -54,6 +54,40 @@ Governance section):
   blocks in the root file are not permitted. The same merged
   compose stack serves as both the local dev environment and the
   local-target E2E surface for Rule VI.
+- **Web application framework**: Vite + React, built as a client-rendered
+  SPA (no server-rendering meta-framework). Every package under
+  `src/apps/` MUST use this pattern unless a documented, package-specific
+  need (e.g. SEO, first-paint performance for a public-facing app)
+  justifies an amendment introducing a server-rendering framework for
+  that package. This keeps every app framework-compatible with
+  `src/components/*` packages, which are themselves plain Vite-built
+  React with no server/client component boundary to reconcile.
+- **GraphQL server framework**: GraphQL Yoga, with schemas authored
+  code-first via Pothos (`@pothos/core`) and input validation via
+  `@pothos/plugin-zod` (reusing this repo's mandated Zod investment
+  rather than a second validation approach). Apollo Server MUST NOT be
+  introduced without an amendment — Yoga runs standalone on the Fetch
+  API/Node `http` with no bundled HTTP framework required, and has no
+  commercial-platform lock-in.
+- **GraphQL client**: TanStack Query (`@tanstack/react-query`) paired
+  with `graphql-request` as the transport, for apps/features that need
+  to call a GraphQL API. A dedicated GraphQL client with a normalized
+  cache (e.g. `urql`) MAY be introduced for a specific package via a
+  documented justification (e.g. deeply-nested entity graphs where
+  manual cache management becomes a real cost) without requiring a full
+  amendment, since it composes alongside rather than replacing this
+  default — but MUST NOT become the workspace-wide default without one.
+- **JWT signing/verification**: `jose`. `jsonwebtoken` MUST NOT be
+  introduced without an amendment — `jose` is Web Crypto-based (runs
+  identically across Node/edge/browser), ESM-first, and its explicit
+  algorithm-parameter API avoids the "alg confusion" vulnerability class
+  `jsonwebtoken`'s more implicit API has historically been prone to.
+- **Password hashing**: Argon2id via `@node-rs/argon2` (a prebuilt,
+  no-build-toolchain-required native binding, including musl/Alpine
+  targets — compatible with this repo's Alpine-based multi-stage
+  Docker builds per Rule VII). The plain `argon2` npm package (native
+  bindings requiring node-gyp) and `bcrypt`/`bcryptjs` MUST NOT be
+  introduced without an amendment.
 - **Git hook manager**: Husky, installed at the workspace root with hooks
   checked into `.husky/` and bootstrapped by the `prepare` script (see
   Rule V).

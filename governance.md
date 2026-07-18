@@ -32,4 +32,4 @@ justification, or the plan revised to comply.
 NOT contradict these rules; if they appear to, the constitution governs and
 the guidance file MUST be corrected.
 
-**Version**: 2.3.1 | **Ratified**: 2026-05-03 | **Last Amended**: 2026-05-09
+**Version**: 2.5.0 | **Ratified**: 2026-05-03 | **Last Amended**: 2026-07-05
